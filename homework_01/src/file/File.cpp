@@ -4,18 +4,19 @@
 #include "File.h"
 
 /** The buffer is clear automatically. Don't use the reference.  */
-void File::readFile(const char *path, void (*block)(const char* block, long len, int blockSize)) {
-    int fd = open(path, O_RDONLY);
+void File::readFile(const char *path, char* buffer, int& bytesRead) {
+    FILE* fd = fopen(path, "r");
 
-    char buffer[BUFFER_SIZE + 1];
+    char c;
 
-    long bytesRead;
-    while ((bytesRead = read(fd, buffer, BUFFER_SIZE))) {
-        buffer[bytesRead] = '\0';
-        block(buffer, bytesRead, BUFFER_SIZE);
+    int len = 0;
+    while ((c = getc(fd)) != EOF) {
+        buffer[len++] = c;
     }
+    buffer[len] = '\n';
 
-    close(fd);
+    bytesRead = len;
+    fclose(fd);
 }
 
 void File::writeFile(const char* path, const char* text, int len, bool clear) {

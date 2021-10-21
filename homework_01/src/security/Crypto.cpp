@@ -4,10 +4,11 @@
 #include "Crypto.h"
 #include <openssl/rand.h>
 #include <cstring>
+#include <utility>
 #include <openssl/conf.h>
 #include <openssl/evp.h>
 #include <openssl/err.h>
-#include <utility>
+#include <openssl/evp.h>
 #include "../util/Util.h"
 
 char *Crypto::generateRandomKey(int size) {
@@ -28,7 +29,7 @@ char *Crypto::xorMessages(const char *a, const char *b, int length) {
     return xorMessages;
 }
 
-char *Crypto::ECBEncryption(const char* message, int len) {
+char *Crypto::ECBEncryption(const char* message, int len, const char* key) {
     int blockSize = BLOCK_SIZE;
 
     if (len % blockSize != 0) {
@@ -41,7 +42,7 @@ char *Crypto::ECBEncryption(const char* message, int len) {
     char** blocks = Util::splitIntoBlocks(message, len, blockSize, blocksNumber);
 
     for (int i = 0; i < blocksNumber; i++) {
-        char *cypherBlock = ECBBlockEncryption(blocks[i], blockSize);
+        char *cypherBlock = ECBBlockEncryption(blocks[i], blockSize, key);
         strcpy(cypherText + blockSize * i, cypherBlock);
         free(cypherBlock);
     }
@@ -51,7 +52,7 @@ char *Crypto::ECBEncryption(const char* message, int len) {
 }
 
 
-char *Crypto::ECBDecryption(const char *message, int len) {
+char *Crypto::ECBDecryption(const char *message, int len, const char* key) {
     int blockSize = BLOCK_SIZE;
 
     if (len % blockSize != 0) {
@@ -64,7 +65,7 @@ char *Crypto::ECBDecryption(const char *message, int len) {
     char** blocks = Util::splitIntoBlocks(message, len, blockSize, blocksNumber);
 
     for (int i = 0; i < blocksNumber; i++) {
-        char *cypherBlock = ECBBlockDecryption(blocks[i], blockSize);
+        char *cypherBlock = ECBBlockDecryption(blocks[i], blockSize, key);
         strcpy(plaintext + blockSize * i, cypherBlock);
         free(cypherBlock);
     }
@@ -73,12 +74,18 @@ char *Crypto::ECBDecryption(const char *message, int len) {
     return plaintext;
 }
 
-char *Crypto::ECBBlockEncryption(const char *block, int blockLength) {
-    return applyPermutation(block, blockLength, PERMUTATION);
+char *Crypto::ECBBlockEncryption(const char *block, int blockLength, const char* key) {
+    char* perm = applyPermutation(block, blockLength, PERMUTATION);
+    char* enc = xorMessages(perm, key, blockLength);
+    free(perm);
+    return enc;
 }
 
-char *Crypto::ECBBlockDecryption(const char *block, int blockLength) {
-    return applyPermutation(block, blockLength, PERMUTATION, true);
+char *Crypto::ECBBlockDecryption(const char *block, int blockLength, const char* key) {
+    char* dec = xorMessages(block, key, blockLength);
+    char* perm = applyPermutation(dec, blockLength, PERMUTATION, true);
+    free(dec);
+    return perm;
 }
 
 char *Crypto::applyPermutation(const char *block, int blockLength, const unsigned char *permutation, bool reversed) {
@@ -156,8 +163,8 @@ char *Crypto::OFBDecryption(const char *cypherText, int len, const char *key) {
         printf("Message should be multiple of %d. Length is %d\n", blockSize, len);
         return nullptr;
     }
-
-    char* plainText = (char*) malloc(len + 1 - blockSize);
+    int plainTextLen = len + 1 - blockSize;
+    char* plainText = (char*) malloc(plainTextLen + 1);
     int blocksNumber;
     char** blocks = Util::splitIntoBlocks(cypherText, len, blockSize, blocksNumber);
 
@@ -174,8 +181,28 @@ char *Crypto::OFBDecryption(const char *cypherText, int len, const char *key) {
         free(cypherBlock);
     }
 
-    plainText[len] = '\0';
+    plainText[plainTextLen] = '\0';
     return plainText;
+}
+
+Crypto::Crypto() {
+    if (RAND == nullptr) {
+        char* randKey = KEY;
+        char* randKeyPerm = applyPermutation(randKey, BLOCK_SIZE, PERMUTATION);
+        char* rand = xorMessages(randKeyPerm, KEY, BLOCK_SIZE);
+
+        RAND = rand;
+        free(randKeyPerm);
+    }
+
+}
+
+char *Crypto::decryptBlock(char *block, int len) {
+    char* rand = xorMessages(block, KEY, len);
+    char* randKeyPerm = applyPermutation(rand, len, PERMUTATION, true);
+
+    free(rand);
+    return randKeyPerm;
 }
 
 

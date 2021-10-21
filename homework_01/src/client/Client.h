@@ -12,21 +12,17 @@ class Client {
 private:
     string id;
 
-    const short bufferLength = 64;
     char address[64];
     int port;
 
     int serverFd = 0;
     struct sockaddr_in servAddress;
-
-    /* TODO */
-    const char* SECRET_KEY = "";
 public:
     Client(string id);
     void connectToServer(char* address, short port);
 
     void sendMessage(void* buffer, int len);
-    void receiveMessage(void* buffer);
+    int receiveMessage(void* buffer);
 
     string getId();
 };

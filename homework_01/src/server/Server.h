@@ -24,8 +24,12 @@ public:
     void startListening();
     int acceptClient();
     void addClient(string id, int fd);
+
     void sendMessage(int fd, void* buffer, int len);
     void receiveMessage(int fd, void* buffer);
+
+    void sendMessageTo(string id, void* buffer, int len);
+    void receiveMessageFrom(string id, void* buffer);
 };
 
 

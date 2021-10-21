@@ -48,10 +48,10 @@ void testCrypto() {
     int len;
     char *paddedPlainText = Util::getCopyAndRound(plainText, strlen(plainText), 16, len);
 
-    char* encrypted = crypt.ECBEncryption(paddedPlainText, len);
+    char* encrypted = crypt.ECBEncryption(paddedPlainText, len, key);
     printf("ECB Enc: %-64s\n", encrypted);
 
-    char* decrypted = crypt.ECBDecryption(encrypted, len);
+    char* decrypted = crypt.ECBDecryption(encrypted, len, key);
     printf("ECB Dec: %-64s\n", decrypted);
 
     printf("\n");
@@ -68,13 +68,13 @@ void testCrypto() {
 }
 
 void testFile() {
-    File::readFile("file", [](const char *block, long len, int blockSize) {
-        printf("%s", block);
-    });
-
-    char text[] = "Ana are mere fiindca spaga cere";
-
-    File::writeFile("file_write", text, (int) strlen(text), true);
-
-    printf("\n");
+//    File::readFile("file", [](const char *block, long len, int blockSize) {
+//        printf("%s", block);
+//    });
+//
+//    char text[] = "Ana are mere fiindca spaga cere";
+//
+//    File::writeFile("file_write", text, (int) strlen(text), true);
+//
+//    printf("\n");
 }

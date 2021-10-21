@@ -48,14 +48,24 @@ void Server::startListening() {
 }
 
 int Server::acceptClient() {
+    printf("Accepting client...\n");
     int clientFd;
 
     if ((clientFd = accept(serverFd, (struct sockaddr *) &address, (socklen_t *) &addressLen)) < 0){
         perror("acceptClient");
         exit(EXIT_FAILURE);
     }
+    printf("Waiting for registering...\n");
 
-    printf("Client connected\n");
+    char name[32];
+    receiveMessage(clientFd, name);
+
+    string id(name);
+    clients[id] = clientFd;
+
+    printf("Client %s connected\n", name);
+
+//    free(name);
     return clientFd;
 }
 
@@ -72,4 +82,12 @@ void Server::receiveMessage(int fd, void* buffer) {
 
 void Server::addClient(string id, int fd) {
     clients[id] = fd;
+}
+
+void Server::sendMessageTo(string id, void *buffer, int len) {
+    sendMessage(clients[id], buffer, len);
+}
+
+void Server::receiveMessageFrom(string id, void *buffer) {
+    receiveMessage(clients[id], buffer);
 }

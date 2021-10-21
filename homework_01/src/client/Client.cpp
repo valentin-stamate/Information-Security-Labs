@@ -2,11 +2,8 @@
 #include <cstdio>
 #include <unistd.h>
 #include <sys/socket.h>
-#include <cstdlib>
 #include <netinet/in.h>
-#include <sys/socket.h>
 #include <arpa/inet.h>
-#include <unistd.h>
 #include <cstring>
 #include <string>
 
@@ -38,7 +35,13 @@ void Client::connectToServer(char* serverAddress, short serverPort) {
         return;
     }
 
-    printf("Connected to server\n");
+    const char *rawId = id.c_str();
+    char name[32];
+    strncpy(name, rawId, 32);
+
+    sendMessage(name, 32);
+
+    printf("%s connected to server\n", name);
 }
 
 void Client::sendMessage(void *buffer, int len) {
@@ -46,10 +49,12 @@ void Client::sendMessage(void *buffer, int len) {
     send(serverFd, buffer, len, 0);
 }
 
-void Client::receiveMessage(void* buffer) {
+int Client::receiveMessage(void* buffer) {
     int bytes;
     read(serverFd, &bytes, sizeof(bytes));
     read(serverFd, buffer, bytes);
+
+    return bytes;
 }
 
 string Client::getId() {

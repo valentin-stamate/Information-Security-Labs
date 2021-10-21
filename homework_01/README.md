@@ -9,3 +9,4 @@
 * https://wiki.openssl.org/index.php/EVP_Symmetric_Encryption_and_Decryption
 * https://stackoverflow.com/a/65294438/10805602
 * https://stackoverflow.com/a/17272953/10805602
+* https://towardsdatascience.com/c-basics-understanding-lambda-7df00705fa48
